@@ -175,7 +175,7 @@ static INT_PTR CALLBACK MainDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
 				if (lna != SendDlgItemMessage(hwndDlg, IDC_SLIDER_LNA, TBM_GETPOS, 0, NULL)) {
 					lna = SendDlgItemMessage(hwndDlg, IDC_SLIDER_LNA, TBM_GETPOS, 0, NULL);
-					std::string lna_value = std::to_string(lna>7?(lna - 14): (lna - 10)*3);
+					std::string lna_value = std::to_string(lna > 7 ? (lna - 14) : (lna - 10) * 3);
 					lna_value.append(" dB");
 					Static_SetText(GetDlgItem(hwndDlg, IDC_LNA_VALUE), lna_value.c_str());
 
@@ -192,7 +192,7 @@ static INT_PTR CALLBACK MainDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
 				if (tia != SendDlgItemMessage(hwndDlg, IDC_SLIDER_TIA, TBM_GETPOS, 0, NULL)) {
 					tia = SendDlgItemMessage(hwndDlg, IDC_SLIDER_TIA, TBM_GETPOS, 0, NULL);
-					std::string tia_value = std::to_string((tia==3)?0: (tia == 2) ? -3:-12);
+					std::string tia_value = std::to_string((tia == 3) ? 0 : (tia == 2) ? -3 : -12);
 					tia_value.append(" dB");
 					Static_SetText(GetDlgItem(hwndDlg, IDC_TIA_VALUE), tia_value.c_str());
 
@@ -236,7 +236,7 @@ static INT_PTR CALLBACK MainDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
 		SendDlgItemMessage(hwndDlg, IDC_SLIDER_LNA, TBM_SETPOS, TRUE, (int)lna);
 
-		std::string lna_value = std::to_string(lna>7 ? (lna - 14) : (lna - 10) * 3);
+		std::string lna_value = std::to_string(lna > 7 ? (lna - 14) : (lna - 10) * 3);
 		lna_value.append(" dB");
 		Static_SetText(GetDlgItem(hwndDlg, IDC_LNA_VALUE), lna_value.c_str());
 
@@ -323,7 +323,7 @@ static INT_PTR CALLBACK MainDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 					error();
 				}
 
-				if (LMS_SetNormalizedGain(device, LMS_CH_RX, channel, gain / 70.0) != 0) {
+				if (LMS_SetGaindB(device, LMS_CH_RX, channel, gain) != 0) {
 					error();
 				}
 
@@ -354,7 +354,7 @@ static INT_PTR CALLBACK MainDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 					error();
 				}
 
-				if (LMS_SetNormalizedGain(device, LMS_CH_RX, channel, gain / 70.0) != 0) {
+				if (LMS_SetGaindB(device, LMS_CH_RX, channel, gain) != 0) {
 					error();
 				}
 
@@ -447,7 +447,7 @@ bool EXTIO_API OpenHW(void)
 	}
 
 
-	if (LMS_SetNormalizedGain(device, LMS_CH_RX, channel, gain / 70.0) != 0) {
+	if (LMS_SetGaindB(device, LMS_CH_RX, channel, gain) != 0) {
 		error();
 		return false;
 	}
@@ -457,7 +457,7 @@ bool EXTIO_API OpenHW(void)
 	ShowWindow(h_dialog, SW_HIDE);
 
 	buffer = new (std::nothrow) int16_t[BUF_SIZE * 2];
-	
+
 
 	return true;
 }
@@ -544,7 +544,7 @@ void EXTIO_API CloseHW(void)
 		DestroyWindow(h_dialog);
 
 	delete buffer;
-	
+
 }
 
 extern "C"
@@ -653,12 +653,12 @@ int EXTIO_API GetAttenuators(int atten_idx, float * attenuation)
 extern "C"
 int EXTIO_API GetActualAttIdx(void)
 {
-	float_type _gain;
+	unsigned int _gain;
 	if (device != nullptr) {
-		if (LMS_GetNormalizedGain(device, LMS_CH_RX, channel, &_gain) != 0)
+		if (LMS_GetGaindB(device, LMS_CH_RX, channel, &_gain) != 0)
 			error();
 	}
-	return ceil(_gain * 70);
+	return _gain;
 }
 
 extern "C"
@@ -666,7 +666,7 @@ int EXTIO_API SetAttenuator(int atten_idx)
 {
 	gain = atten_idx;
 	if (device != nullptr) {
-		if (LMS_SetNormalizedGain(device, LMS_CH_RX, channel, gain / 70.0) != 0)
+		if (LMS_SetGaindB(device, LMS_CH_RX, channel, gain) != 0)
 			error();
 		return 0;
 	}
@@ -716,7 +716,7 @@ int  EXTIO_API ExtIoSetSrate(int srate_idx)
 		Callback(-1, extHw_Changed_SampleRate, 0, NULL);// Signal application
 		return 0;
 	}
-	
+
 	return 1;	// ERROR
 }
 
